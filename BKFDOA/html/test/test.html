@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+  <html>
+  <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+      <title>title</title>
+      <link rel="stylesheet" type="text/css" href="../css/api.css"/>
+      <style>
+          body{
+            color:#000;
+          }
+          .textbox {
+            height:20px;
+            border-color: #000;
+            border: 1px 1px 1px 1px #000 solid;
+          }
+          .button{
+            height: 20px;
+            width: 80px;
+            background-color: #ff0000;
+          }
+      </style>
+  </head>
+  <body>
+
+    参数1：<input class="textbox" type="text" id="text1"/><br>
+    参数2：<input class="textbox" type="text" id="text2"/><br>
+    参数3：<input class="textbox" type="text" id="text3"/><br>
+    参数4：<input class="textbox" type="text" id="text4"/><br>
+    参数5：<input class="textbox" type="text" id="text5"/><br>
+    <input type="button" class="button" onclick="Login();" value="登录">
+    <input type="button" class="button" onclick="GetPubInfo();" value="公共信息">
+    <input type="button" class="button" onclick="GetAddress();" value="通讯录">
+    <input type="button" class="button" onclick="GetFileList();" value="公文处理">
+  </body>
+  <script type="text/javascript" src="../script/api.js"></script>
+  <script type="text/javascript" src="../script/base.js"></script>
+  <script type="text/javascript">
+      apiready = function(){
+      };
+      //测试登录
+      function Login()
+      {
+        api.ajax({
+            url:'http://192.168.1.105:8088/api/UserInfo/Login',
+            method: 'GET',
+            data: {
+              values: {
+                userId: 'admin',
+                userPass:'C4CA4238A0B923820DCC509A6F75849B'
+              }
+            }
+        }, function(ret, err) {
+            if (ret) {
+                api.alert({ msg: JSON.stringify(ret) });
+            } else {
+                api.alert({ msg: JSON.stringify(err) });
+            }
+        });
+      }
+
+      //测试公共信息
+      function GetPubInfo()
+      {
+        var userId=$api.getStorage("userId");
+        var token=$api.getStorage("token");
+        var pageSize=$api.byId("text1").value;
+        var pageIndex=$api.byId("text2").value;
+        api.ajax({
+            url:rootUrl+'PubInfo/GetPubInfoList',
+            method: 'GET',
+            data: {
+              values: {
+                userId:userId,
+                token:token,
+                PubInfoType:'',
+                pageSize:pageSize,
+                pageIndex:pageIndex
+              }
+            }
+        }, function(ret, err) {
+            if (ret) {
+                api.alert({ msg: JSON.stringify(ret) });
+            } else {
+                api.alert({ msg: JSON.stringify(err) });
+            }
+        });
+      }
+
+    //测试通讯录
+    function GetAddress()
+    {
+      var userId=$api.getStorage("userId");
+      var token=$api.getStorage("token");
+      api.ajax({
+          url:rootUrl+'Address/GetAddressList',
+          method: 'GET',
+          data: {
+            values: {
+              userId:userId,
+              token:token,
+            }
+          }
+      }, function(ret, err) {
+          if (ret) {
+              alert("返回值："+JSON.stringify(ret));
+          } else {
+              alert("错误值："+JSON.stringify(err));
+          }
+      });
+    }
+
+    //测试公文处理
+    function GetFileList()
+    {
+      var userId=$api.getStorage("userId");
+      var token=$api.getStorage("token");
+      var dealType=$api.byId("text3").value;
+      var pageSize=$api.byId("text1").value;
+      var pageIndex=$api.byId("text2").value;
+      api.ajax({
+          url:apiUrl+'File/GetFlowingDocList',
+          method: 'GET',
+          data: {
+            values: {
+              userId:userId,
+              token:token,
+              dealType:dealType,
+              pageSize:pageSize,
+              pageIndex:pageIndex
+            }
+          }
+      }, function(ret, err) {
+          if (ret) {
+              api.alert({ msg: JSON.stringify(ret) });
+          } else {
+              api.alert({ msg: JSON.stringify(err) });
+          }
+      });
+    }
+  </script>
+  </html>

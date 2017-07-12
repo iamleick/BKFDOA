@@ -1,0 +1,604 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>处理公文</title>
+    <link rel="stylesheet" type="text/css" href="../../css/api.css" />
+    <style type="text/css">
+      html,
+      body {
+          display: -webkit-box;
+          display: -webkit-flex;
+          display: flex;
+          -webkit-box-orient: vertical;
+          -webkit-flex-flow: column;
+          flex-flow: column;
+          height: 100%;
+          background-color: #F8F8F8;
+      }
+      .nav {
+          width: 100%;
+          height: 43px;
+          float:left;
+          background-color: #fafafa;
+          border-bottom: 1px solid #b4b4b4;
+      }
+      .nav .arrow {
+          float: left;
+          width: 43px;
+          height: 43px;
+          background-image: url(../../image/arrow.png);
+          background-size: 11px 20px;
+          background-repeat: no-repeat;
+          background-position: center center;
+      }
+      .nav .title {
+        float: right;
+        width: 80px;
+        height: 43px;
+        line-height: 43px;
+        margin-right: 2px;
+      }
+      .table{
+        width:100%;
+        border-collapse: collapse;
+        text-align: center;
+      }
+      .cellText {
+        width:25%;
+      	height: 30px;
+        text-align: center;
+        vertical-align: middle;
+        border-left: #fff solid 0px;
+        border-right: #fff solid 1px;
+        border-top:#fff solid 0px;
+        border-bottom: #fff solid 1px;
+        background-color: #dae7f1;
+      }
+      .cellInput {
+        width:75%;
+      	height: 30px;
+        text-align: left;
+        vertical-align: middle;
+        border-left: #fff solid 0px;
+        border-right: #fff solid 1px;
+        border-top:#fff solid 0px;
+        border-bottom: #fff solid 1px;
+        background-color: #e4e9f5;
+      }
+      .textBox {
+        width:99%;
+        border:1px solid #9a9a9a;
+        background-color: #fdffed;
+      	height: 25px;
+      	font-size: 14px;
+      	line-height: 25px;
+      	padding-top: 2px;
+      	color: #514c1d;
+      }
+
+      .DealSpan{
+        width:'auto';
+        height: 30px;
+        line-height: 30px;
+        text-align: left;
+        margin:3px 10px;
+        color:#fff;
+        background:#0066ff;
+        font-size: 14px;
+        border-radius: 2px;
+        padding-left: 15px;
+        padding-right: 15px;
+      }
+      .Submit{
+        background:#009900;
+      }
+      .btn {
+        width:60px;
+        height: 30px;
+        line-height: 30px;
+        text-align: center;
+        margin:3px 10px;
+        color:#fff;
+        background:#0066ff;
+        font-size: 14px;
+        border-radius: 5px;
+      }
+
+      .content {
+          -webkit-box-flex: 1;
+          -webkit-flex: 1;
+          flex: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="nav" id="nav">
+      <div class="arrow" tapmode onclick="api.closeWin();"></div>
+      <div class="title">公文处理</div>
+    </div>
+    <table class="table">
+      <tr>
+        <td class="cellText">公文编号</td>
+        <td class="cellInput" id="tdDocNo">
+          <input type="text" id="tbDocNo" class="textBox"/>
+        </td>
+      </tr>
+      <tr>
+        <td class="cellText">公文标题</td>
+        <td class="cellInput" id="tdDocTitle">
+          <textarea id="tbDocTitle" style="height:54px;" rows="2" wrap="soft" maxlength="200" class="textBox"></textarea>
+        </td>
+      </tr>
+      <tr>
+        <td class="cellText">紧急程度</td>
+        <td class="cellInput" id="tdDocPriority"></td>
+      </tr>
+      <tr>
+        <td class="cellText">当前步骤</td>
+        <td class="cellInput" id="tdDocStep"></td>
+      </tr>
+      <tr>
+        <td class="cellText">审批流程</td>
+        <td class="cellInput" id="tdFlowSet"></td>
+      </tr>
+      <tr>
+        <td class="cellText">公文原件</td>
+        <td class="cellInput" id="tdDocFile"></td>
+      </tr>
+      <tr>
+        <td class="cellText">附件列表</td>
+        <td class="cellInput" id="tdAttachmentList"></td>
+      </tr>
+      <tr>
+        <td class="cellText" rowspan="2" style="height:80px;">审批操作</td>
+        <td class="cellInput" style="height:40px" id="tdDealContent">
+          <textarea id="tbDealContent" title="处理意见" style="height:60px;" rows="3" wrap="soft" maxlength="200" class="textBox"></textarea>
+        </td>
+      </tr>
+      <tr>
+        <td class="cellInput" style="height:40px" id="tdDealButtons"></td>
+      </tr>
+      <tr>
+        <td class="cellText" colspan="2">流转记录</td>
+      </tr>
+      <tr>
+        <td id="tdFlowRecord" class="cellInput" style="height:200px; font-size:10; vertical-align:top;" colspan="2"></td>
+      </tr>
+    </table>
+    <input type="hidden" id="hidFilePath"/>
+    <input type="hidden" id="hidFileName"/>
+    <input type="hidden" id="hidAttachmentList"/>
+    <input type="hidden" id="hidFlowSet"/>
+  </body>
+    <script type="text/javascript" src="../../script/api.js"></script>
+    <script type="text/javascript" src="../../script/base.js"></script>
+    <script type="text/javascript">
+      apiready = function() {
+        nav = $api.byId('nav');
+        $api.fixIos7Bar(nav);
+        navHeight = $api.offset(nav).h;
+        fnGetData();
+      };
+
+      //调用接口获取流转文档信息
+      function fnGetData(){
+        api.showProgress({
+          title: '正在打开',
+          modal: false
+        });
+        var userId=$api.getStorage("userId");
+        var token=$api.getStorage("token");
+        var flowId=api.pageParam.flowId;
+        var docId=api.pageParam.docId;
+        api.ajax({
+          url: apiUrl+'File/GetFlowingDoc',
+          method: 'GET',
+          dataType:'json',
+          timeout:15,
+          contentType: 'application/json;charset=utf-8',
+          data: {
+            values: {
+              userId: userId,
+              token: token,
+              flowId:flowId,
+              docId:docId
+            }
+          }
+        },function(ret, err){
+          if (!ret) {
+            api.hideProgress();
+            api.toast({
+              msg: '网络不给力',
+              duration: 2000,
+              location: 'bottom'
+            });
+            return;
+          }else{
+            if (ret.code != "200"){
+              api.hideProgress();
+              api.toast({
+                msg: ret.msg,
+                duration: 2000,
+                location: 'bottom'
+              });
+              return;
+            }else{
+              var result=ret.result;
+              switch (result.DocPriority) {
+                case "1":
+                  $api.byId('tdDocPriority').innerHTML="普通";
+                  break;
+                case "2":
+                  $api.byId('tdDocPriority').innerHTML="<font color='ffcc00'>加急</font>";
+                  break;
+                case "3":
+                  $api.byId('tdDocPriority').innerHTML="<font color='#ff0000'>紧急</font>";
+                  break;
+                default:
+                $api.byId('tdDocPriority').innerHTML="普通";
+                break;
+              }
+              $api.byId('tdDocStep').innerHTML=result.StepNo+':'+result.Dealer;
+              $api.byId('tdFlowSet').innerHTML=result.FlowSet;
+              $api.byId('tdFlowRecord').innerHTML=result.FlowRecord;
+              //处理操作按钮，首先处理控件的编辑属性，然后再处理显示哪些按钮
+              var userLevel=result.UserLevel;
+              var buttonStr="";
+              if (userLevel =="1"){
+                $api.byId('tbDocNo').value=result.DocNo;
+                $api.byId('tbDocTitle').value=result.DocTitle;
+                //处理提交和退回按钮
+                var nextStepNo=result.NextStepNo;
+                if (nextStepNo !="-1"){
+                  buttonStr +="<span class='DealSpan Submit' tapmode onclick='fnSubmit("+nextStepNo+")'>提交给 "+nextStepNo+":"+result.NextDealer+"</span><br>";
+                }else{
+                  buttonStr +="<span class='DealSpan Submit' tapmode onclick='fnSubmit("+nextStepNo+")'>结束并归档</span><br>";
+                }
+                var backList=result.BackerList;
+                for (var i=0;i<backList.length;i++){
+                  if (backList[i]!=null){
+                    buttonStr +="<span class='DealSpan' tapmode onclick='fnBack("+backList[i].StepNo+")'>退回给 "+backList[i].StepNo+":"+backList[i].StepDealer+"</span>";
+                  }
+                }
+                //最后处理文件
+                var filePath=webUrl+"Upfile/omsFile/"+result.FilePath;
+                var fileName=result.FileName;
+                $api.byId('hidFilePath').value=filePath;
+                $api.byId('hidFileName').value=result.FileName;
+                $api.byId('tdDocFile').innerHTML="<a href='"+filePath+fileName+"' tapmode=''>"+fileName+"</a>";
+                var attachmentList=result.AttachmentList;
+                $api.byId('hidAttachmentList').value=attachmentList;
+                var attachHTML="";
+                if (attachmentList != ""){
+                  var attachArr=attachmentList.split('|');
+                  for (var i=0;i<attachArr.length;i++){
+                    if (attachArr[i]!=""){
+                      attachHTML+="<a href='"+filePath+"附件/"+attachArr[i]+"' tapmode=''>"+attachArr[i]+"</a>";
+                    }
+                  }
+                  $api.byId('tdAttachmentList').innerHTML=attachHTML;
+                }
+
+              }else{
+                $api.byId('tdDocNo').innerHTML=result.DocNo;
+                $api.byId('tdDocTitle').innerHTML=result.DocTitle;
+                $api.byId('tdDealContent').innerHTML='';
+                if (userLevel=="2"){
+                  //处理催办和撤回按钮
+                  buttonStr +="<input type='button' id='btnHurry' class='btn' tapmode onclick='fnHurry()' value='催办'/>";
+                  buttonStr +="<input type='button' id='btnDrawBack' class='btn' tapmode onclick='fnDrawBack()' value='撤回'/>";
+                }
+              }
+              $api.byId('tdDealButtons').innerHTML=buttonStr;
+            }
+          }
+        });
+        api.hideProgress();
+      }
+
+      //下载公文正文
+      function fnDownloadFile(){
+        var filePath=$api.byId("hidFilePath").value;
+        var fileName=$api.byId("hidFileName").value;
+        var path=filePath+encodeURIComponent(fileName);
+        var localPath="fs://OmsFile//"+fileName;
+        //首先从服务器上将文件下载到本地
+        api.download({
+            url: path,
+            savePath: localPath,
+            // encode:true,
+            report: true,
+            cache: true,
+            allowResume: true
+        }, function(ret, err) {
+          if (ret){
+            if (ret.state == 1) {
+              //打开文件
+              var docInteraction = api.require('docInteraction');
+              docInteraction.open({
+                  path: localPath
+              }, function(ret, err) {
+                  if (err) {
+                    alert("打开文件失败！");
+                      alert(JSON.stringify(err));
+                  } else {
+                      alert(JSON.stringify(ret));
+                  }
+              });
+              //打开文件结束
+            }
+          }else{
+              alert("下载文件失败！");
+          }
+        });
+      }
+
+      //打开公文正文
+      function fnOpenFile(fileName){
+        var filePath=$api.byId("hidFilePath").value;
+        if (fileName==""){
+          fileName=$api.byId("hidFileName").value;
+        }else{
+          filePath+="附件/";
+        }
+        var path=encodeURIComponent(filePath+fileName);
+        var localPath="fs://OmsFile//"+fileName;
+        //首先判断本地是否有文件，没有则下载
+        var fs = api.require('fs');
+        fs.exist({
+            path: localPath
+        }, function(ret, err) {
+            if (ret.exist) {//如果文件存在则直接打开
+              var docInteraction = api.require('docInteraction');
+              docInteraction.open({
+                  path: localPath
+              }, function(ret, err) {
+                  alert("打开文件失败！");
+              });
+            } else {//如果文件不存在则首先下载再打开
+              api.download({
+                  url: path,
+                  savePath: localPath,
+                  // encode:true,
+                  report: true,
+                  cache: true,
+                  allowResume: true
+              }, function(ret, err) {
+                if (ret){
+                  if (ret.state == 1) {
+                    //打开文件
+                    var docInteraction = api.require('docInteraction');
+                    docInteraction.open({
+                        path: localPath
+                    }, function(ret, err) {
+                        if (err) {
+                          alert("打开文件失败！");
+                            alert(JSON.stringify(err));
+                        } else {
+                            alert(JSON.stringify(ret));
+                        }
+                    });
+                    //打开文件结束
+                  }
+                }else{
+                    alert("打开文件失败！");
+                }
+              });
+            }
+        });
+          //首先从服务器上将文件下载到本地
+          api.download({
+              url: path,
+              savePath: localPath,
+              // encode:true,
+              report: true,
+              cache: true,
+              allowResume: true
+          }, function(ret, err) {
+            if (ret){
+              if (ret.state == 1) {
+                var docInteraction = api.require('docInteraction');
+                docInteraction.open({
+                    path: localPath
+                }, function(ret, err) {
+                    if (err) {
+                        alert(JSON.stringify(err));
+                    } else {
+                        alert(JSON.stringify(ret));
+                    }
+                });
+              }else{
+                alert(ret.filesize);
+                alert(ret.state);
+              }
+            }else{
+                alert("下载失败！");
+            }
+          });
+
+
+
+
+
+
+
+        api.openWin({
+      		name: 'file',
+      		url: filePath+fileName,
+      		bounces: false,
+      		delay:200
+      	});
+      }
+
+      //提交当前公文
+      function fnSubmit(nextStepNo){
+        api.showProgress({
+          title: '正在提交',
+          modal: false
+        });
+        var userId=$api.getStorage("userId");
+        var token=$api.getStorage("token");
+        var flowId=api.pageParam.flowId;
+        var docId=api.pageParam.docId;
+        var docNo=$api.byId('tbDocNo').value;
+        var docTitle=$api.byId('tbDocTitle').value;
+        var dealContent=$api.byId('tbDealContent').value;
+        api.ajax({
+            url: apiUrl+'File/SubmitFile',
+            method: 'post',
+            data: {
+                values: {
+                  userId:userId,
+                  token:token,
+                  flowId:flowId,
+                  docId:docId,
+                  docNo:docNo,
+                  docTitle:docTitle,
+                  dealContent:dealContent,
+                  nextStepNo: nextStepNo
+                },
+            }
+        }, function(ret, err) {
+          api.hideProgress();
+          if (ret) {
+            if (ret.code=="200"){
+              api.closeWin();
+            }else{
+              alert(ret.msg) ;
+            }
+          } else {
+              api.alert({ msg: JSON.stringify(err) });
+          }
+        });
+      }
+
+      //退回当前公文
+      function fnBack(nextStepNo){
+        api.showProgress({
+          title: '正在退回',
+          modal: false
+        });
+        var userId=$api.getStorage("userId");
+        var token=$api.getStorage("token");
+        var flowId=api.pageParam.flowId;
+        var docId=api.pageParam.docId;
+        var docNo=$api.byId('tbDocNo').value;
+        var docTitle=$api.byId('tbDocTitle').value;
+        var dealContent=$api.byId('tbDealContent').value;
+        api.ajax({
+            url: apiUrl+'File/SendBackFile',
+            method: 'post',
+            data: {
+                values: {
+                  userId:userId,
+                  token:token,
+                  flowId:flowId,
+                  docId:docId,
+                  docNo:docNo,
+                  docTitle:docTitle,
+                  dealContent:dealContent,
+                  nextStepNo: nextStepNo
+                },
+            }
+        }, function(ret, err) {
+          api.hideProgress();
+          if (ret) {
+            if (ret.code=="200"){
+              api.closeWin();
+            }else{
+              alert(ret.msg) ;
+            }
+          } else {
+              api.alert({ msg: JSON.stringify(err) });
+          }
+        });
+      }
+
+      //催办当前公文
+      function fnHurry(){
+        api.showProgress({
+          title: '正在提交',
+          modal: false
+        });
+        var userId=$api.getStorage("userId");
+        var token=$api.getStorage("token");
+        var flowId=api.pageParam.flowId;
+        var docId=api.pageParam.docId;
+        api.ajax({
+            url: apiUrl+'File/Hurry',
+            method: 'post',
+            data: {
+                values: {
+                  userId:userId,
+                  token:token,
+                  flowId:flowId,
+                  docId:docId,
+                },
+            }
+        }, function(ret, err) {
+          api.hideProgress();
+          if (ret) {
+            if (ret.code=="200"){
+              api.toast({
+                msg: '已发送催办信息',
+                duration: 2000,
+                location: 'bottom'
+              });
+              $api.byId('btnHurry').style.display='none';
+            }else{
+              alert(ret.msg) ;
+            }
+          } else {
+              api.alert({ msg: JSON.stringify(err) });
+          }
+        });
+      }
+
+      //撤回当前公文
+      function fnDrawBack(){
+        api.showProgress({
+          title: '正在撤回',
+          modal: false
+        });
+        var userId=$api.getStorage("userId");
+        var token=$api.getStorage("token");
+        var flowId=api.pageParam.flowId;
+        var docId=api.pageParam.docId;
+        api.ajax({
+            url: apiUrl+'File/DrawBack',
+            method: 'post',
+            data: {
+                values: {
+                  userId:userId,
+                  token:token,
+                  flowId:flowId,
+                  docId:docId,
+                },
+            }
+        }, function(ret, err) {
+          api.hideProgress();
+          if (ret) {
+            if (ret.code=="200"){
+              api.closeWin();
+            }else{
+              alert(ret.msg) ;
+            }
+          } else {
+              api.alert({ msg: JSON.stringify(err) });
+          }
+        });
+      }
+
+      //监听是否点击了返回键
+      function fnInitEventListenner() {
+          api.addEventListener({
+              name: 'keyback'
+          }, function(ret, err) {
+              api.closeWin();
+          });
+      }
+    </script>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>通讯录</title>
+    <link rel="stylesheet" type="text/css" href="../css/api.css"/>
+    <link rel="stylesheet" type="text/css" href="../css/style.css"/>
+    <style>
+        .empty{ text-align: center; padding: 120px 0; }
+    </style>
+</head>
+<body>
+</body>
+</html>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../script/base.js"></script>
+<script type="text/javascript">
+  apiready=function(){
+    api.showProgress({
+      title: '加载中',
+      modal: false
+    });
+
+    //首先调用接口获取到所有的通讯录列表
+    var userId = $api.getStorage("userId");
+    var token = $api.getStorage("token");
+    var loginUrl = apiUrl+'Address/GetAddressList';
+    api.ajax({
+      url: loginUrl,
+      method: 'GET',
+      dataType:'json',
+      timeout:30,
+      contentType: 'application/json;charset=utf-8',
+      data: {
+        values: {
+          userId: userId,
+          token: token
+        }
+      }
+    },function(ret, err){
+        if (ret){
+          if (ret.code=="200"){
+            var result=ret.result;
+            var UIListContacts = api.require('UIListContacts');
+            UIListContacts.open({
+            rect : {
+                x : 0,
+                y : 0,
+                w : api.frameWidth,
+                h : api.frameHeight-20,
+                bounces : false
+            },
+            contacts :result,
+            fixedOn : api.frameName
+          }, function(ret1,err1) {
+            if (ret1.eventType=="click"){
+              //打开新窗口拨打电话
+              api.openFrame({
+      	        name: 'contract',
+      	        url: 'float/contract.html',
+                pageParam:{
+                  remark: ret1.contact.remark,
+                  phoneno:ret1.contact.phoneno,
+                  mobilephoneno:ret1.contact.mobilephoneno
+                },
+      	        rect: {
+      		        x:0,
+      		        y:0,
+      		        w:api.winWidth,
+      		        h:api.winHeight
+      	        },
+      	        bgColor: 'rgba(0,0,0,0.6)',
+      			    bounces: false
+              });
+            }
+          });
+          api.hideProgress();
+        }else{
+          api.hideProgress();
+          api.toast({
+            msg:"获取通讯录失败！",
+            duration:2000,
+            location:"bottom"
+          });
+        }
+      }
+      else
+      {
+        api.hideProgress();
+        api.toast({
+          msg:"获取通讯录失败！",
+          duration:2000,
+          location:"bottom"
+        });
+      }
+    });
+  }
+</script>

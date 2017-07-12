@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+  <html>
+  <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+      <title>title</title>
+      <link rel="stylesheet" type="text/css" href="../css/api.css"/>
+      <script type="text/javascript" src="../script/md5.js"></script>
+      <style>
+        html {height: 100%;}
+      	body {height: 100%; background: #f0f0f0;}
+        form {vertical-align:bottom;;}
+
+      	input {height: 50px;font-size: 18px;color: #8E8C8C;width: 80%;}
+      	input::-webkit-input-placeholder {color: #ccc;}
+      	.email,.passwd {/*margin-top: 3px;*/background: #fff;}
+      	.passwd img, .email img {vertical-align: top;}
+      	.item {margin:0px 10px; background-color: #fff; border-bottom: 1px solid #e0e0e0;position: relative;}
+      	/*.email, .passwd, .btn {margin:3px 10px;}*/
+      	.btn {margin:3px 10px;color:#fff;}
+      	.btn {background:#0066ff ;height: 45px; text-align: center; line-height: 45px; font-size: 20px;margin-top: 20px;border-radius: 5px;}
+      	.email img {width: 25px; margin-top: 15px; margin-left: 10px; margin-right: 9px;}
+      	.passwd img {height: 25px;margin-top: 10px; margin-left: 10px;margin-right: 10px;}
+      	input {outline: none;}
+
+        header {
+          position: relative;
+          width: 100%;
+          height: auto;
+          background-color: #fff;
+        }
+        header img {
+          position: relative;
+          width: 100%;
+          height: auto;
+        }
+        divBlank {height: 200px;}
+      </style>
+  </head>
+  <body>
+    <header>
+      <img id="imgBgLogin" src="../image/bgAppLogin.png" />
+    </header>
+    <div class="divBlank"></div>
+    <form action="">
+  		<div class="item email"><img src="../image/login01.png" alt=""><input type="text" placeholder="用户名" id="email"></div>
+  		<div class="item passwd"><img src="../image/login02.png" alt=""><input type="password" placeholder="密码" id="passwd">
+  		</div>
+  		<div class="btn" tapmode="buyhover" onclick="login();">登    录</div>
+  	</form>
+  </body>
+  <script type="text/javascript" src="../script/api.js"></script>
+  <script type="text/javascript" src="../script/base.js"></script>
+  <script type="text/javascript">
+  apiready = function(){
+    var userId=$api.getStorage("userId");
+    if (userId != null){
+      var tbUserId=$api.byId("email");
+      tbUserId.value=userId;
+    }
+  };
+
+  //登录操作对应的方法
+  function login(){
+    var userid=$api.byId("email").value;
+    if (userid==""){
+      api.toast({
+        msg:"账号不能为空！",
+        duration:2000,
+        location:"bottom"
+      });
+      return false;
+    }else{
+      userid=encodeURIComponent(userid);
+    }
+    var pwd=$api.byId("passwd").value;
+    if (pwd==""){
+      api.toast({
+        msg:"请输入密码！",
+        duration:2000,
+        location:"bottom"
+      });
+      return false;
+    }else{
+      pwd=hex_md5(pwd);
+    }
+    api.showProgress({
+        style: 'default',
+        animationType: 'fade',
+        title: '登录中...',
+        modal: false
+    });
+
+    //调用登录接口
+    var loginUrl = apiUrl+'UserInfo/Login';
+    api.ajax({
+      url: loginUrl,
+      method: 'GET',
+      dataType:'json',
+      timeout:15,
+      contentType: 'application/json;charset=utf-8',
+      data: {
+        values: {
+          userId: userid,
+          userPass:pwd
+        }
+      }
+    },function(ret, err){
+      if (ret) {
+        if (ret.code=="200"){
+          var result=ret.result;
+          $api.setStorage('token', result.UserToken);
+          $api.setStorage('userId', result.UserId);
+          api.hideProgress();
+          api.openWin({
+              name: 'main',
+              url: './main.html',
+              pageParam: {name: 'main'}
+          });
+         api.closeWin({name:'login'});
+        }
+        else{
+          api.hideProgress();
+          api.toast({
+            msg:"用户名或密码错！",
+            duration:2000,
+            location:"bottom"
+          });
+        }
+      }else {
+        api.hideProgress();
+        api.toast({
+          msg:"登录失败！",
+          duration:2000,
+          location:"bottom"
+        });
+      }
+    });
+  }
+
+  </script>
+  </html>

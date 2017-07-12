@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+  <title>title</title>
+  <link rel="stylesheet" type="text/css" href="../../css/api.css" />
+  <style>
+    html,
+    body {
+      height: 100%;
+      background-color: #00ccff;
+    }
+
+    .content {
+      background-color: #fff;
+      box-sizing: border-box;
+      border-radius: 4px;
+      padding: 5px;
+      margin: 5px 5px 5px 5px;//上右下左
+      height:150px;
+      line-height: 20px;
+      font-size: 16px;
+    }
+
+    .content .title {
+      width: 100%;
+    }
+    .content .type {
+      width:33%;
+      color: #ccc;
+      text-align: left;
+      font-size:12px;
+    }
+    .content .time {
+      float: right;
+      color: #ccc;
+      padding-right: 5px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="headlist"></div>
+</body>
+<script id="template" type="text/template">
+  {{~ it:data }}
+  <div class="content" tapmode onclick="fnOpenContent('{{= data.DocID}}','{{= data.FlowID}}')">
+    <div class="title">公文编号：{{= data.DocNo }}</div>
+    <div class="title">公文标题：{{= data.DocTitle }}</div>
+    <div class="title">归档时间：{{= data.LastEdited }}</div>
+    <div>
+      <span class="type">优先级：{{= data.DocPriority }}</span>
+      <span class="time">发起人：{{= data.DocStarter }}</span>
+    </div>
+  </div>
+  {{~}}
+</script>
+  <script type="text/javascript" src="../../script/api.js"></script>
+  <script type="text/javascript" src="../../script/base.js"></script>
+  <script type="text/javascript" src="../../script/doT.min.js"></script>
+  <script type="text/javascript">
+    apiready = function() {
+      fnInitPull();
+      fninit();
+      headList(progress, isPull);
+      fnInitPushRefresh();
+
+    };
+    var headlist, dot;
+    var dataLoading = false;   //正在加载数据
+    var isEmpty = false;
+    var pageIndex = 0;     //当前页数
+    var pageSize = 5;     //每次加载的页面大小
+    var progress = true;   //正在处理的标记
+    var isPull = true;     //下拉还是上推的标记
+    var typeNum;
+
+    //打开公文处理界面
+    function fnOpenContent(docId,flowId) {
+      api.openWin({
+        name: 'viewFile',
+        url: 'viewFile.html',
+        pageParam: {
+          docId: docId,
+          flowId:flowId
+        }
+      });
+    };
+
+    // 刷新
+    function fnInitPull() {
+      api.setRefreshHeaderInfo({
+        visible: true,
+        loadingImg: 'widget://image/refresh.png',
+        bgColor: '#f0f0f0',
+        textColor: '#888',
+        textDown: '下拉刷新...',
+        textUp: '松开刷新...',
+        showTime: true
+      }, function(ret, err) {
+        headList(progress, true);
+        api.refreshHeaderLoadDone();
+      });
+    };
+
+    //将模板中的数据赋值给dot
+    function fninit() {
+      headlist = $api.byId('headlist');
+      var template = $api.byId('template');
+      dot = doT.template(template.innerHTML);
+    }
+
+    // 获取数据的方法
+    function headList(progress, isPull) {
+      if (dataLoading) {   //如果正在获取则放弃
+        return;
+      }
+      dataLoading = true;
+
+      if (isPull) {
+        pageIndex = 0;
+        isEmpty = false;
+      }
+
+      if (isEmpty) {
+        api.toast({
+          msg: '没有更多了',
+          duration: 2000,
+          location: 'bottom'
+        });
+        dataLoading = false;
+        return;
+      }
+      if (progress) {
+        api.showProgress({
+          title: '加载中',
+          modal: false
+        });
+      }
+      //调用接口获取数据
+      var userId=$api.getStorage("userId");
+      var token=$api.getStorage("token");
+      var dealType=api.pageParam.dealType;
+      api.ajax({
+        url: apiUrl+'File/GetFlowedDocList',
+        method: 'GET',
+        dataType:'json',
+        timeout:15,
+        contentType: 'application/json;charset=utf-8',
+        data: {
+          values: {
+            userId: userId,
+            token: token,
+            dealType:dealType,
+            pageSize:pageSize,
+            pageIndex:pageIndex
+          }
+        }
+      },function(ret, err){
+        api.hideProgress();
+        api.refreshHeaderLoadDone();
+        dataLoading = false;
+        if (!ret) {
+          api.toast({
+            msg: '网络不给力',
+            duration: 2000,
+            location: 'bottom'
+          });
+          return;
+        }
+        pageIndex++;   //当前页数加一
+        if (ret.length < pageSize) {
+          isEmpty = true;
+        }
+        if (ret.length == 0) {
+          return;
+        }
+        if (isPull) {
+          headlist.innerHTML = dot(ret.result);
+        } else {
+          headlist.innerHTML += dot(ret.result);
+        }
+      })
+    }
+
+    // 下拉加载更多
+    function fnInitPushRefresh() {
+      api.addEventListener({
+        name: 'scrolltobottom',
+        extra: {
+          threshold: 200
+        }
+      }, function(ret, err) {
+        headList(progress, false);
+      });
+    };
+  </script>
+  </html>

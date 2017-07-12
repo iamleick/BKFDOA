@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../../css/api.css"/>
+    <style>
+    	html,body{
+    		height: 98%;
+				background: transparent;
+				-webkit-touch-callout: none;
+				font-family: Tahoma, Geneva, sans-serif;
+				font-style: normal;
+			}
+			#dialog{
+				background-color: #e7e7e7; border-radius: 6px;
+				position: absolute; margin: auto;
+				left: 0; right: 0; top: 0; bottom: 0;
+				width: 80%;
+				height: 180px;
+				-webkit-transition: all .1s;
+				transition:all .1s;
+				-webkit-transform: scale(0);
+				transform:scale(0);
+				opacity: 0;
+			}
+			#dialog.in{
+				-webkit-transform: scale(1);
+				transform:scale(1);
+				opacity: 1;
+			}
+			#contractor{
+				text-align: center;
+				font-size: 20;
+				font-weight: bold;
+				height: 30px;
+				line-height: 30px;
+				padding: 10px;
+				border-bottom: 1px #ccc solid;
+			}
+			.phoneclass{
+				text-align: left;
+				vertical-align: middle;
+				font-size: 18;
+				height: 45px;
+				line-height: 45px;
+				padding: 10px;
+			}
+    </style>
+</head>
+<body>
+	<div id="dialog">
+		<div id="contractor"></div>
+    <ul id="ulCall">
+      <li class="phoneclass" onclick="CallPhone('1');">座机：<span id="spPhoneNo"></span></li>
+      <li class="phoneclass" onclick="CallPhone('2');">手机：<span id="spMobilePhoneNo"></span></li>
+    </ul>
+	</div>
+</body>
+<script type="text/javascript" src="../../script/api.js"></script>
+<script type="text/javascript" src="../../script/zepto.min.js"></script>
+<script type="text/javascript">
+	apiready = function(){
+		$('#dialog').addClass('in');
+		var remark=api.pageParam.remark;
+		$api.byId('contractor').innerText="呼叫 "+remark;
+		var phoneNo=api.pageParam.phoneno;
+		$api.byId('spPhoneNo').innerText=phoneNo;
+		var mobilePhoneNo=api.pageParam.mobilephoneno;
+		$api.byId('spMobilePhoneNo').innerText=mobilePhoneNo;
+		$(document.body).on('touchend',function(e){
+			var dialog = $("#dialog")[0];
+			if(!$.contains(dialog, e.target)){
+				$('#dialog').removeClass('in');
+				setTimeout(function(){
+					api.closeFrame();
+				},200);
+			}
+		});
+	};
+
+	//拨打电话
+	function CallPhone(phoneType){
+		var phoneNo="";
+		if (phoneType=="1"){
+			phoneNo=$api.byId("spPhoneNo").innerText;
+		}else{
+			phoneNo=$api.byId("spMobilePhoneNo").innerText;
+		}
+		if (phoneNo !=""){
+			api.call({
+					type: 'tel',
+					number: phoneNo
+			});
+		}
+	}
+</script>
+</html>

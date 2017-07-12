@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>查看邮件</title>
+    <link rel="stylesheet" type="text/css" href="../../css/api.css" />
+    <style type="text/css">
+      html,
+      body {
+          display: -webkit-box;
+          display: -webkit-flex;
+          display: flex;
+          -webkit-box-orient: vertical;
+          -webkit-flex-flow: column;
+          flex-flow: column;
+          height: 100%;
+          background-color: #F8F8F8;
+      }
+      .nav {
+          width: 100%;
+          height: 43px;
+          float:left;
+          background-color: #fafafa;
+          border-bottom: 1px solid #b4b4b4;
+      }
+      .nav .arrow {
+          float: left;
+          width: 43px;
+          height: 43px;
+          background-image: url(../../image/arrow.png);
+          background-size: 11px 20px;
+          background-repeat: no-repeat;
+          background-position: center center;
+      }
+      .nav .title {
+        float: right;
+        width: 80px;
+        height: 43px;
+        line-height: 43px;
+        margin-right: 5px;
+      }
+
+      .content {
+          -webkit-box-flex: 1;
+          -webkit-flex: 1;
+          flex: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="nav" id="nav">
+      <div class="arrow" tapmode onclick="api.closeWin();"></div>
+      <div class="title">查看邮件</div>
+    </div>
+  </body>
+    <script type="text/javascript" src="../../script/api.js"></script>
+    <script type="text/javascript" src="../../script/base.js"></script>
+    <script type="text/javascript">
+      apiready = function() {
+        nav = $api.byId('nav');
+        $api.fixIos7Bar(nav);
+        navHeight = $api.offset(nav).h;
+        var mailId=api.pageParam.id;
+        var userId=$api.getStorage("userId");
+        var token=$api.getStorage("token");
+        api.showProgress({
+          title: '加载中',
+          modal: false
+        });
+        var obj = api.require('UIWebBrowser');
+        obj.open({
+            rect: {
+              x: 0,
+              y: navHeight,
+              w: 'auto',
+              h: api.winHeight - navHeight-60
+            },
+            path: webUrl+'APP/ViewMail.aspx?mailId='+mailId+'&userId='+userId+'&token='+token,
+            fixedOn: api.frameName,
+            fixed: true,
+            button: [{
+                normal: 'widget://res/UIWebBrowser/normal.png',
+                highlight: 'widget://res/UIWebBrowser/highlight.png',
+                selected: 'widget://res/UIWebBrowser/selected.png',
+                title: '回复',
+                width: 55,
+                height: 30,
+                position: 'bottom'
+            },
+            {
+                normal: '',
+                highlight: '',
+                selected: '',
+                title: '转发',
+                width: 55,
+                height: 30,
+                position: 'bottom'
+            }]
+        }, function(ret) {
+          api.hideProgress();
+        });
+      };
+    </script>
+</html>

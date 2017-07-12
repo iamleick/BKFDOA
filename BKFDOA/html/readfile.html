@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+  <html>
+  <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+      <title>title</title>
+      <link rel="stylesheet" type="text/css" href="../../css/api.css"/>
+      <style>
+          body{
+            background-color: #fff;
+          }
+          .btn {margin:3px 10px;color:#fff;}
+        	.btn {background:#0066ff ;height: 45px; text-align: center; line-height: 45px; font-size: 20px;margin-top: 20px;border-radius: 5px;}
+      </style>
+  </head>
+  <body>
+    <input type="button" class="btn" id="btnSubmit" value="提交" tapmode onclick="fnSubmitFile()"/>
+  </body>
+  <script type="text/javascript" src="../../script/api.js"></script>
+  <script type="text/javascript" src="../../script/base.js"></script>
+  <script type="text/javascript">
+    var path="http://192.168.11.16:8801/UpFile/omsFile/FileTemplate/"+encodeURIComponent("出差单.doc");
+    var localPath="fs://OmsFile//出差单.doc";
+    apiready = function(){
+      //首先从服务器上将文件下载到本地
+      api.download({
+          url: path,
+          savePath: localPath,
+          // encode:true,
+          report: true,
+          cache: true,
+          allowResume: true
+      }, function(ret, err) {
+        if (ret){
+          if (ret.state == 1) {
+            var docInteraction = api.require('docInteraction');
+            docInteraction.open({
+                path: localPath
+            }, function(ret, err) {
+                if (err) {
+                    alert(JSON.stringify(err));
+                } else {
+                    alert(JSON.stringify(ret));
+                }
+            });
+          }else{
+            alert(ret.filesize);
+            alert(ret.state);
+          }
+        }else{
+            alert("下载失败！");
+        }
+      });
+    };
+
+    function fnSubmitFile(){
+      var fileUrl="http://192.168.0.6:8088/api/Test/UploadFile";
+      api.ajax(
+        {
+          url: fileUrl,
+          method: 'post',
+          data:
+          {
+              values: {
+                  userId: 'haha'
+              }//,
+              // files: {
+              //     file: localPath
+              // }
+          }
+      }, function(ret, err) {
+          if (ret) {
+              api.alert({ msg: JSON.stringify(ret) });
+          } else {
+              api.alert({ msg: JSON.stringify(err) });
+          }
+      });
+    }
+  </script>
+  </html>

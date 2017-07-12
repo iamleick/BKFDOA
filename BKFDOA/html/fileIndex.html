@@ -1,0 +1,173 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=0, width=device-width"/>
+    <title>api</title>
+    <link rel="stylesheet" type="text/css" href="../css/api.css" />
+    <style>
+      html,
+      body {
+        height: 100%;
+      }
+    }
+    .header {
+        height: 43px;
+        width: 100%;
+        display:block;
+        background: #00ccff;
+        line-height: 43px;
+        float: left;
+    }
+
+      /*tabBar*/
+      .tabBar{
+        width: 100%;
+        height: 40px;
+        background-color: #FFFFFF;
+        position: relative;
+        display: flex;
+        display: -webkit-flex;
+        display: -webkit-box;
+        flex-flow: row;
+        -webkit-flex-flow: row;
+        -webkit-box-orient: horizontal;
+      }
+      .tabBar .tabBar-btn{
+          width: 25%;
+          height: 40px;
+          font-size: 0.8em;
+          line-height: 40px;
+          color: #63625E;
+          text-align: center;
+      }
+      .tabBar .tabBar-btn:active,.tabBar .tabBar-btn.tap-active{
+          background-color: #E5E5E5;
+          color: #72716E;
+      }
+      .tabBar .tabBar-btn.active{
+          color: #FFBA15;
+      }
+      .tabBar .tabBar-bar{
+          position: absolute;
+          left: 0;
+          bottom: 0;
+          width: 25%;
+          height: 3px;
+          background-color: rgba(255,186,31,0.8);
+          -webkit-transition: all .25s ease;
+                  transition: all .25s ease;
+      }
+      /*tabBar end*/
+      .content {
+          -webkit-box-flex: 1;
+          -webkit-flex: 1;
+          flex: 1;
+      }
+    </style>
+</head>
+<body>
+  <header id="header">
+    <div class="tabBar clearfix">
+        <div class="tabBar-btn pull-left active" tapmode="tap-active" onclick="changeBar(0);">等待处理</div>
+        <div class="tabBar-btn pull-left" tapmode="tap-active" onclick="changeBar(1);">已经处理</div>
+        <div class="tabBar-btn pull-left" tapmode="tap-active" onclick="changeBar(2);">等待签收</div>
+        <div class="tabBar-btn pull-left" tapmode="tap-active" onclick="changeBar(3);">已经归档</div>
+        <div class="tabBar-bar"></div>
+    </div>
+  </header>
+  <section id="main" class="content"></section>
+</body>
+</html>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript">
+  //  tabBar切换效果
+  var aTabBarBtn = $api.domAll('.tabBar .tabBar-btn');
+  var tabBar = $api.dom('.tabBar .tabBar-bar');
+  var headerHeight=parseInt($api.getStorage('headerHeight'));
+  var footerHeight=parseInt($api.getStorage('footerHeight'));
+  var tabHead=$api.byId("header");
+  var tabHeight=$api.offset(tabHead).h;
+  //初始化FrameGroup
+  function fnInit(){
+    api.openFrameGroup({
+      name: 'fileGroup',
+      scrollEnabled: true,
+      rect: {
+        x: 0,
+        y: headerHeight+tabHeight,
+        w: 'auto',
+        h: api.winHeight-headerHeight-footerHeight-tabHeight
+      },
+      index: 0,
+      frames: frames
+    }, function(ret, err) {
+      api.setFrameGroupAttr({
+          name: 'fileGroup',
+          hidden: false
+      });
+    });
+  }
+
+  //切換公文卡片
+  var changeBar = function(index){
+    tabBar.style.webkitTransform = 'translateX('+(100*index)+'%)';
+    tabBar.style.transform = 'translateX('+100*index+'%)';
+    for (var i = 0,len = aTabBarBtn.length; i < len; i++) {
+      if (index == i) {
+        $api.addCls(aTabBarBtn[i],'active');
+      }else{
+        $api.removeCls(aTabBarBtn[i],'active');
+      }
+    }
+    api.setFrameGroupIndex({
+        name: 'fileGroup',
+        index: index,
+        scroll: true
+    });
+    api.setFrameGroupAttr({
+        name: 'fileGroup',
+        hidden: false
+    });
+
+  }
+
+  var frames=[{
+    name:'todoFrame',
+    url:'files/fileList.html',
+    pageParam:{
+      dealType:'todo'
+    },
+    vScrollBarEnabled:true,
+    hScrollBarEnabled:false
+  },{
+    name:'didFrame',
+    url:'files/fileList.html',
+    pageParam:{
+      dealType:'did'
+    },
+    vScrollBarEnabled:true,
+    hScrollBarEnabled:false
+  },{
+    name:'signFrame',
+    url:'files/signList.html',
+    pageParam:{
+      dealType:'sign'
+    },
+    vScrollBarEnabled:true,
+    hScrollBarEnabled:false
+  },{
+    name:'finishedFrame',
+    url:'files/finishedList.html',
+    pageParam:{
+      dealType:'finished'
+    },
+    vScrollBarEnabled:true,
+    hScrollBarEnabled:false
+  }];
+
+    apiready = function(){
+      fnInit();
+      changeBar(0);
+    };
+</script>

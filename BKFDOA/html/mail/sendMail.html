@@ -1,0 +1,304 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>拟制邮件</title>
+    <link rel="stylesheet" type="text/css" href="../../css/api.css" />
+    <style type="text/css">
+      html,
+      body {
+          display: -webkit-box;
+          display: -webkit-flex;
+          display: flex;
+          -webkit-box-orient: vertical;
+          -webkit-flex-flow: column;
+          flex-flow: column;
+          height: 100%;
+          background-color: #F8F8F8;
+      }
+      .nav {
+          width: 100%;
+          height: 43px;
+          float:left;
+          background-color: #fafafa;
+          border-bottom: 1px solid #b4b4b4;
+      }
+      .nav .arrow {
+          float: left;
+          width: 43px;
+          height: 43px;
+          background-image: url(../../image/arrow.png);
+          background-size: 11px 20px;
+          background-repeat: no-repeat;
+          background-position: center center;
+      }
+      .nav .button {
+        float: right;
+        width: 80px;
+        height: 43px;
+        line-height: 43px;
+        margin-right: 5px;
+      }
+      .btn {
+        width:60px;
+        height: 30px;
+        line-height: 30px;
+        text-align: center;
+        margin:3px 10px;
+        color:#fff;
+        background:#0066ff;
+        font-size: 14px;
+        border-radius: 5px;
+      }
+      .cellText {
+        width:25%;
+      	height: 30px;
+        text-align: center;
+        vertical-align: middle;
+        border-left: #fff solid 0px;
+        border-right: #fff solid 1px;
+        border-top:#fff solid 0px;
+        border-bottom: #fff solid 1px;
+        background-color: #dae7f1;
+      }
+      .cellInput {
+        width:75%;
+      	height: 30px;
+        text-align: left;
+        vertical-align: middle;
+        border-left: #fff solid 0px;
+        border-right: #fff solid 1px;
+        border-top:#fff solid 0px;
+        border-bottom: #fff solid 1px;
+        background-color: #e4e9f5;
+      }
+      .textBox {
+        width:99%;
+        border:1px solid #9a9a9a;
+        background-color: #fdffed;
+      	height: 25px;
+      	font-size: 14px;
+      	line-height: 25px;
+      	padding-top: 2px;
+      	color: #514c1d;
+      }
+      .table{
+        width:100%;
+        border-collapse: collapse;
+        text-align: center;
+      }
+
+      .content {
+          -webkit-box-flex: 1;
+          -webkit-flex: 1;
+          flex: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="nav" id="nav">
+      <div class="arrow" tapmode onclick="api.closeWin();"></div>
+      <div class="button">
+        <input type="button" id="btnSend" class="btn" tapmode onclick="fnSendMail()" value="发送"/>
+      </div>
+    </div>
+    <table class="table">
+      <tr>
+        <td class="cellText" tapmode onclick="fnFindUser(0)">收件人</td>
+        <td class="cellInput">
+          <textarea id="tbSendTo" title="收件人" style="height:60px;" rows="6" wrap="soft" maxlength="200" class="textBox"></textarea>
+        </td>
+      </tr>
+      <tr>
+        <td class="cellText" tapmode onclick="fnFindUser(1)">抄送人</td>
+        <td class="cellInput">
+          <textarea id="tbCCTo" title="抄送" style="height:60px;" rows="6" wrap="soft" maxlength="200" class="textBox"></textarea>
+        </td>
+      </tr>
+      <tr>
+        <td class="cellText">标题</td>
+        <td class="cellInput">
+          <textarea id="tbMailTitle" title="邮件标题" style="height:60px;" rows="4" wrap="soft" maxlength="200" class="textBox"></textarea>
+        </td>
+      </tr>
+      <tr>
+        <td class="cellInput" colspan="2">
+          <textarea id="tbMailContent" title="邮件正文" style="height:180px;" rows="6" wrap="soft" maxlength="200" class="textBox"></textarea>
+        </td>
+      </tr>
+    </table>
+  </body>
+    <script type="text/javascript" src="../../script/api.js"></script>
+    <script type="text/javascript" src="../../script/base.js"></script>
+    <script type="text/javascript">
+      apiready = function() {
+        nav = $api.byId('nav');
+        $api.fixIos7Bar(nav);
+        navHeight = $api.offset(nav).h;
+        var mailId=api.pageParam.id;
+        var userId=$api.getStorage("userId");
+        var token=$api.getStorage("token");
+
+
+
+        //首先调用接口获取到所有的用户列表
+        var userId = $api.getStorage("userId");
+        var token = $api.getStorage("token");
+        var loginUrl = apiUrl+'UserInfo/GetDepUserList';
+        api.ajax({
+          url: loginUrl,
+          method: 'GET',
+          dataType:'json',
+          timeout:30,
+          contentType: 'application/json;charset=utf-8',
+          data: {
+            values: {
+              userId: userId,
+              token: token
+            }
+          }
+        },function(ret, err){
+          if (ret){
+            userList=ret.result;
+          }
+          else{
+            userList="[]";
+          }
+        });
+      };
+
+      var userList;
+
+      //查找用户对象
+      function fnFindUser(tbFlag){
+        var UIActionSelector = api.require('UIActionSelector');
+        UIActionSelector.open({
+            datas: userList,
+            layout: {
+                row: 10,
+                col: 2,
+                height: 30,
+                size: 12,
+                sizeActive: 14,
+                rowSpacing: 5,
+                colSpacing: 10,
+                maskBg: 'rgba(0,0,0,0.2)',
+                bg: '#fff',
+                color: '#888',
+                colorActive: '#f00',
+                colorSelected: '#f00'
+            },
+            animation: true,
+            cancel: {
+                text: '取消',
+                size: 12,
+                w: 90,
+                h: 35,
+                bg: '#fff',
+                bgActive: '#ccc',
+                color: '#888',
+                colorActive: '#fff'
+            },
+            ok: {
+                text: '确定',
+                size: 12,
+                w: 90,
+                h: 35,
+                bg: '#fff',
+                bgActive: '#ccc',
+                color: '#888',
+                colorActive: '#fff'
+            },
+            title: {
+                text: '请选择',
+                size: 12,
+                h: 44,
+                bg: '#eee',
+                color: '#888'
+            },
+            fixedOn: api.frameName
+        }, function(ret1, err1) {
+          if (ret1.eventType=="ok"){
+            var tbItem;
+            var selUser=ret1.level2;
+            if (tbFlag=="0"){
+              tbItem=$api.byId("tbSendTo");
+            }else{
+              tbItem=$api.byId("tbCCTo");
+            }
+            var users=tbItem.value;
+            if ((users+",").indexOf(","+selUser+",")<0){
+              tbItem.value+=","+selUser;
+            }
+          }
+        });
+      }
+
+      //发送邮件
+      function fnSendMail(){
+        var userId=$api.getStorage("userId");
+        var token=$api.getStorage("token");
+        var sendTo=$api.byId('tbSendTo').value;
+        if (sendTo==""){
+          api.toast({
+            msg:"收件人不能为空！",
+            duration:2000,
+            location:"bottom"
+          });
+          return false;
+        }
+        var ccTo=$api.byId('tbCCTo').value;
+        var mailTitle=$api.byId('tbMailTitle').value;
+        if (mailTitle==""){
+          api.toast({
+            msg:"标题不能为空！",
+            duration:2000,
+            location:"bottom"
+          });
+          return false;
+        }
+        var mailContent=$api.byId('tbMailContent').value;
+        if (mailContent==""){
+          api.toast({
+            msg:"邮件正文不能为空！",
+            duration:2000,
+            location:"bottom"
+          });
+          return false;
+        }
+
+        api.showProgress({
+          title: '正在发送',
+          modal: false
+        });
+        api.ajax({
+            url: apiUrl+'Mail/SendMail',
+            method: 'post',
+            data: {
+                values: {
+                  userId:userId,
+                  token:token,
+                  sendTo:sendTo,
+                  ccTo:ccTo,
+                  mailTitle:mailTitle,
+                  mailContent:mailContent,
+                },
+            }
+        }, function(ret, err) {
+          api.hideProgress();
+          if (ret) {
+            if (ret.code=="200"){
+              alert("邮件已成功发送！");
+              api.closeWin();
+            }else{
+              alert(ret.msg) ;
+            }
+          } else {
+              api.alert({ msg: JSON.stringify(err) });
+          }
+        });
+      }
+    </script>
+</html>

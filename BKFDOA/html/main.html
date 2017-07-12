@@ -1,0 +1,226 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>主页导航</title>
+    <link rel="stylesheet" type="text/css" href="../css/api.css"/>
+    <style>
+      html,
+      body {
+        height: 100%;
+        display: flex;
+        display: -webkit-flex;
+        display: -webkit-box;
+        flex-flow: column;
+        -webkit-flex-flow: column;
+        -webkit-box-orient: vertical;
+      }
+      .header {
+          height: 43px;
+          width: 100%;
+          display:block;
+          background: #00ccff;
+          line-height: 43px;
+          float: left;
+      }
+      .top-logo {
+        height: 43px;
+        width: auto;
+      }
+      .top-user {
+        height: 40px;
+        width: 70px;
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        color: #fff;
+      }
+      /*首页头部导航*/
+
+      .content {
+          -webkit-box-flex: 1;
+          -webkit-flex: 1;
+          flex: 1;
+      }
+
+      /*首页底部导航*/
+      .footer {
+          height: 44px;
+          display: flex;
+          display: -webkit-flex;
+          display: -webkit-box;
+          flex-flow: row;
+          -webkit-flex-flow: row;
+          -webkit-box-orient: horizontal;
+          background-color: #00ccff;
+      }
+      .menu {
+          flex: 1;
+          -webkit-flex: 1;
+          -webkit-box-flex: 1;
+          height: 44px;
+          box-sizing: border-box;
+          padding-bottom: 2px;
+          padding-top: 30px;
+          color: #585858;
+          font-size: 10px;
+          text-align: center;
+          background-size: 25px 25px;
+          background-position: center 2px;
+          background-repeat: no-repeat;
+      }
+      .footer .info {
+          background-image: url(../image/iconPubInfo.png);
+      }
+      .footer .file {
+          background-image: url(../image/iconFile.png);
+      }
+      .footer .mail {
+          background-image: url(../image/iconMail.png);
+      }
+      .footer .address {
+          background-image: url(../image/iconAddress.png);
+      }
+      .footer .info.active {
+          background-image: url(../image/iconPubInfo1.png);
+      }
+      .footer .file.active {
+          background-image: url(../image/iconFile1.png);
+      }
+      .footer .mail.active {
+          background-image: url(../image/iconMail1.png);
+      }
+      .footer .address.active {
+          background-image: url(../image/iconAddress1.png);
+      }
+      /*首页底部导航*/
+    </style>
+</head>
+<body>
+  <header id="header">
+      <div class="header home active">
+          <img class="top-logo" src="../image/bgAppTop.png" alt=""/>
+          <div id="currUser" class="top-user" tapmode onclick="openMenu()"></div>
+      </div>
+  </header>
+  <section class="content"></section>
+  <footer id="footer" class="footer">
+    <div class="menu info active " tapmode="active" onclick="fnChange(0)">公共信息</div>
+    <div class="menu file" tapmode="active" onclick="fnChange(1)">公文处理</div>
+    <div class="menu mail" tapmode="active" onclick="fnChange(2)">内部邮件</div>
+    <div class="menu address" tapmode="active" onclick="fnChange(3)">通 讯 录</div>
+  </footer>
+</body>
+</html>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript">
+  //初始化界面并选中第一个选卡
+  apiready = function ()
+  {
+    var userId=$api.getStorage("userId");
+    if (userId != null){
+      var currUser=$api.byId("currUser");
+      currUser.innerText=userId;
+    }
+    fnInit();
+    fnChange(0);
+  };
+
+  //初始化界面上下高度
+  function fnInit() {
+    var header = $api.byId('header');
+    var footer = $api.byId('footer');
+    menus = $api.domAll(footer, '.menu');
+    headers = $api.domAll(header, '.header');
+    footerHeight = $api.offset(footer).h;
+    for (var i = 0; i < headers.length; i++) {
+        $api.fixIos7Bar(headers[i]);
+    }
+    var offset = $api.offset(header);
+    headerHeight = offset.h;
+    headerTop = offset.t;
+    $api.setStorage('headerHeight',headerHeight);
+    $api.setStorage('footerHeight', footerHeight);
+  };
+
+  //根据菜单数量切换界面元素
+  function fnChange(frameindex){
+    for (var i = 0; i < menus.length; i++)
+    {
+      if (frameindex == i)
+      {
+        $api.addCls(menus[i], 'active');
+        fnOpenFrame(i,true);
+      }
+    }
+    for (var i = 0; i < menus.length; i++)
+    {
+      if (frameindex != i)
+      {
+        $api.removeCls(menus[i], 'active');
+        fnOpenFrame(i,false);
+      }
+    }
+  };
+
+  //根据传递的参数打开或关闭frame
+  var frameNames = ['infoIndex', 'fileIndex', 'mailIndex', 'addressIndex'];
+  function fnOpenFrame(index, isOpen) {
+    if (isOpen)
+    {
+      api.openFrame({
+          name: frameNames[index],
+          url:  frameNames[index] + '.html',
+          bounces: false,
+          rect: {
+              x: 0,
+              y: headerHeight,
+              w: 'auto',
+              h: api.winHeight - footerHeight-headerHeight
+          },
+          vScrollBarEnabled:false
+      });
+    }
+    else
+    {
+      api.closeFrame({
+          name: frameNames[index]
+      });
+    }
+  };
+
+  //监听是否点击了返回键
+  function fnInitEventListenner() {
+      api.addEventListener({
+          name: 'keyback'
+      }, function(ret, err) {
+          api.confirm({
+              title: '提示',
+              msg: '是否退出应用',
+              buttons: ['确定', '取消']
+          }, function(ret, err) {
+          	if (ret.buttonIndex == 1) {
+          		api.closeWidget();
+          	}
+          });
+      });
+  }
+
+  // 单击用户名打开菜单
+  var openMenu = function(){
+      // api.openFrame({
+      //     name: 'menu',
+      //     url: '../html/float/menu.html',
+      //     bounces: false,
+      //     rect: {
+      //         x: 0,
+      //         y: $api.dom('#header').offsetHeight,
+      //         w: 'auto',
+      //         h: 'auto'
+      //     },
+      //     reload: true
+      // });
+  };
+</script>

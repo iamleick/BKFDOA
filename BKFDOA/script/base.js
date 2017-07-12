@@ -1,0 +1,10 @@
+// var apiUrl="http://192.168.1.3:8088/api/";
+// var webUrl="http://192.168.1.3:8001/";
+// var apiUrl="http://192.168.1.105:8088/api/";
+// var webUrl="http://192.168.1.105:8001/";
+var apiUrl="http://192.168.0.5:8088/api/";
+var webUrl="http://192.168.0.5:8001/";
+// var apiUrl="http://192.168.11.16:8002/api/";
+// var webUrl="http://192.168.11.16:8001/";
+// var apiUrl="http://111.12.56.25:8802/api/";
+// var webUrl="http://111.12.56.25:8801/";

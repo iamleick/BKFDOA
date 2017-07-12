@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+  <title>title</title>
+  <link rel="stylesheet" type="text/css" href="../css/api.css" />
+  <style>
+    html,
+    body {
+      height: 100%;
+      background-color: #dae7f1;
+    }
+    .header {
+      text-align: right;
+      height: 43px;
+      width: 100%;
+      display:block;
+      background: #00ccff;
+      line-height: 43px;
+      float: right;
+    }
+    .btn {
+      width:80px;
+      height: 35px;
+      line-height: 35px;
+      text-align: center;
+      margin:3px 10px;
+      color:#fff;
+      background:#0066ff;
+      font-size: 14px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <header id="header">
+    <input type="button" id="btnCreate" class="btn" tapmode onclick="fnSendMail()" value="拟制邮件"/>
+  </header>
+  <section id="headlist" class="content"></section>
+  <!-- <div id="headlist"></div> -->
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript">
+//  tabBar切换效果
+var headerHeight=parseInt($api.getStorage('headerHeight'));
+var footerHeight=parseInt($api.getStorage('footerHeight'));
+var tabHead=$api.byId("header");
+var tabHeight=$api.offset(tabHead).h;
+function fnInit(){
+  api.openFrame({
+      name: 'mailList',
+      url: 'mail/mailList.html',
+      rect: {
+        x: 0,
+        y: headerHeight+tabHeight,
+        w: 'auto',
+        h: api.winHeight-headerHeight-footerHeight-tabHeight
+      },
+      pageParam: {
+          name: 'test'
+      },
+      bounces: true,
+      vScrollBarEnabled: true,
+      hScrollBarEnabled: true
+    });
+  }
+
+  //打开拟制邮件界面
+  function fnSendMail() {
+    api.openWin({
+      name: 'SendMail',
+      url: 'mail/sendMail.html',
+    });
+  };
+
+  apiready = function(){
+    fnInit();
+  };
+</script>
+</html>
